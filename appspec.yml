@@ -6,13 +6,21 @@ files:
 hooks:
   BeforeInstall:
     - location: scripts/composer_install.sh
+                cd /var/www/html/
+                composer install --no-interaction --optimize-autoloader
       timeout: 300
       runas: root
   AfterInstall:
     - location: scripts/permissions.sh
+                cd /var/www/html/
+                chown -R apache:apache storage bootstrap/cache
+                chmod -R 775 storage bootstrap/cach
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: scripts/start_queue.sh
+    - location: scripts/start_queue.sh  
+                cd /var/www/html/
+                php artisan queue:restart /var/www/html/
+                php artisan queue:restart
       timeout: 300
       runas: root
