@@ -3,17 +3,21 @@
 # Install apache
 yum -y install httpd-2.4.52
 
-# Set up proxy for Node server
-cat <<EOT >> /etc/httpd/conf/httpd.conf
-LoadModule proxy_module modules/mod_proxy.so
-LoadModule proxy_http_module modules/mod_proxy_http.so
+# Set file and folder permissions
+chgrp -R apache /home/ec2-user/
+find /home/ec2-user/ -type d -exec chmod g+rx {} +
+find /home/ec2-user/ -type f -exec chmod g+r {} +
+chown -R ec2-user /home/ec2-user/
+chown -R 775 /home/ec2-user/
+find /home/ec2-user/ -type d -exec chmod u+rwx {} +
+find /home/ec2-user/ -type f -exec chmod u+rw {} +
 
-ProxyRequests Off
-ProxyPass / http://localhost:3000/
-ProxyPassReverse / http://localhost:3000/
+sed -i "s|AllowOverride None|AllowOverride All|g"  /etc/httpd/conf/httpd.conf
+sed -i "s|/var/www/html|/var/www/phplaravel/public|g"  /etc/httpd/conf/httpd.conf
+sed -i "s|index.html|index.php|g" /etc/httpd.conf/httpd.conf
 
-<Location "/">
-  Order allow,deny
-  Allow from all
-</Location>
-EOT
+cd /var/www/phplaravel
+chown -R ec2-user:ec2-user /var/www/phplaravel
+useradd -G ec2-user apache
+chgrp -R apache storage bootstrap/cache
+chmod -R ug+rwx storage bootstrap/cache
